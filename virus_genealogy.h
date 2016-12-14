@@ -1,9 +1,23 @@
 #ifndef VIRUS_GENEALOGY_H
 #define VIRUS_GENEALOGY_H
 
-class VirusAlreadCreated {};
-class VirusNotFound {};
-class TriedToRemoveStemVirus {};
+class VirusAlreadyCreated : public std::exception {
+  virtual const char* what() const throw() {
+    return "VirusAlreadyCreated";
+  }
+};
+
+class VirusNotFound : public std::exception {
+  virtual const char* what() const throw() {
+    return "VirusNotFound";
+  }
+};
+
+class TriedToRemoveStemVirus : public std::exception {
+  virtual const char* what() const throw() {
+    return "TriedToRemoveStemVirus";
+  }
+};
 
 template <class Virus> class VirusGenealogy {
 private:
@@ -56,5 +70,5 @@ public:
   // Zgłasza wyjątek TriedToRemoveStemVirus przy próbie usunięcia
   // wirusa macierzystego.
   void remove(Virus::id_type const &id);
-}
+};
 #endif
