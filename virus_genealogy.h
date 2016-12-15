@@ -63,6 +63,9 @@ private:
       return virus;
     }
 
+    bool has_parent() {
+      return !parents.empty();
+    }
     void add_child(node_ptr child) {
       children.insert(child);
     }
@@ -240,7 +243,9 @@ public:
     for (id_type child_id : children) {
       child = viruses.at(child_id);
       child->remove_parent(virus);
-      // TODO albo tu albo w remove_parent trzeba chyba usuwac jak nie ma parentow
+
+      if (!child->has_parent() && child_id != stem_id)
+        remove(child_id);
     }
 
     viruses.erase(id);
