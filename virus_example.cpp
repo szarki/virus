@@ -69,6 +69,13 @@ int main() {
   catch (std::exception &e) {
     std::cout << e.what() << std::endl;
   }
+
+  //Bład kompilacji
+  // VirusGenealogy<Virus> gen2(gen);
+
+  //Bład kompilacji przypisania.
+  // VirusGenealogy<Virus> gen2("A2H2");
+  // gen2 = gen;
 }
 
 // Powyższy program powinien wypisać na standardowe wyjście:
