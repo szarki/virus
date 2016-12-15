@@ -99,6 +99,9 @@ private:
     }
   };
 
+  VirusGenealogy& operator=(const VirusGenealogy& that) {};
+  VirusGenealogy(const VirusGenealogy& that) {}
+
 public:
   //Klasa VirusGenealogy powinna udostępniać następujący interfejs.
 
