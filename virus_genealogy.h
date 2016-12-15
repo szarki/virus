@@ -175,7 +175,7 @@ public:
 
     new_virus.add_parent(parent);
     parent.add_child(new_virus);
-    viruses.insert(std::pair<id_type, node_ptr>(id, new_virus));
+    viruses.insert(pair_id_ptr(id, new_virus));
   }
 
 
@@ -184,17 +184,20 @@ public:
       throw VirusAlreadyCreated();
     if (parent_ids.empty())
       throw VirusNotFound();
-
-    for (auto parent : parents_id) {
+    for (int parent : parents_id) {
       if (!exists(parent))
         throw VirusNotFound();
     }
 
-    Virus* toAdd = new Virus(id);
-    viruses.insert(std::pair<id_type, Virus*>(id, toAdd));
-    parents.insert(std::pair<id_type, std::vector<id_type>>(id, parent_ids));
-    for (int i=0; i<parent_ids.size(); ++i)
-      children.at(parent_ids[i]).push_back(id);
+    // TODO wyjatki
+    node_ptr new_virus = std::make_shared<Node>(id);
+    node_ptr parent;
+    viruses.insert(pair_id_ptr(id, new_virus));
+    for (int parent_id : parents_id) {
+      parent = viruses.at(parent_id);
+      new_virus.add_parent(parent);
+      parent.add_child(new_virus);
+    }
   }
 
 
