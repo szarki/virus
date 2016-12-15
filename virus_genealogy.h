@@ -53,6 +53,7 @@ private:
       parents.insert(viruses.at(parent_id));
     }
 
+    // TODO czy potrzebne
     VirusNode(id_type const &id, std::vector<id_type> const &parent_ids) : virus(Virus(id)) {
       for (id_type parent_id : parent_ids)
         parents.insert(viruses.at(parent_id));
@@ -60,6 +61,22 @@ private:
 
     Virus get_virus() {
       return virus;
+    }
+
+    void add_child(node_ptr child) {
+      children.insert(child);
+    }
+
+    void add_parent(node_ptr parent) {
+      parents.insert(parent);
+    }
+
+    void remove_child(node_ptr child) {
+      children.erase(child);
+    }
+
+    void remove_parent(node_ptr parent) {
+      parents.erase(parent);
     }
 
     std::vector<id_type> get_parents() {
@@ -162,33 +179,24 @@ public:
   }
 
 
-
-
-// <--- |||||||||||||||||| ---->
-
-
-
-
-
   void create(id_type const &id, std::vector<id_type> const &parent_ids) {
     if (exists(id))
       throw VirusAlreadyCreated();
     if (parent_ids.empty())
       throw VirusNotFound();
-    for (int i=0; i<parent_ids.size(); ++i) {
-      if (!exists(parent_ids[i]))
+
+    for (auto parent : parents_id) {
+      if (!exists(parent))
         throw VirusNotFound();
     }
-    // virus_ptr toAdd = virus_ptr(Virus(id));
-    // viruses.insert(pair_id_ptr(id, toAdd));
-    //
-    // std::set<virus_ptr> parentsSet;
-    // for (int i=0; i<parent_ids.size(); ++i)
-    //   parentsSet.insert(viruses.at(parent_ids[i]));
-    // parents.insert(pair_id_set(id, parentsSet));
-    // for (int i=0; i<parent_ids.size(); ++i)
-    //   children.at(parent_ids[i]).insert(viruses.at(id));
+
+    Virus* toAdd = new Virus(id);
+    viruses.insert(std::pair<id_type, Virus*>(id, toAdd));
+    parents.insert(std::pair<id_type, std::vector<id_type>>(id, parent_ids));
+    for (int i=0; i<parent_ids.size(); ++i)
+      children.at(parent_ids[i]).push_back(id);
   }
+
 
   // Dodaje nową krawędź w grafie genealogii.
   // Zgłasza wyjątek VirusNotFound, jeśli któryś z podanych wirusów nie istnieje.
