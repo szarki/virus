@@ -72,16 +72,24 @@ private:
 
     std::vector<id_type> get_parents() {
       std::vector<id_type> parents_vec;
-      for (auto parent : parents)
-        parents_vec.push_back(parent->get_virus().get_id());
-      return parents_vec;
+      try {
+        for (auto parent : parents)
+          parents_vec.push_back(parent->get_virus().get_id());
+        return parents_vec;
+      } catch (...) {
+        return std::vector<id_type>();
+      }
     }
 
     std::vector<id_type> get_children() {
       std::vector<id_type> children_vec;
-      for (auto child : children)
-        children_vec.push_back(child->get_virus().get_id());
-      return children_vec;
+      try {
+        for (auto child : children)
+          children_vec.push_back(child->get_virus().get_id());
+        return children_vec;
+      } catch (...) {
+        return std::vector<id_type>();
+      }
     }
   };
 
@@ -93,7 +101,7 @@ private:
 public:
 
   VirusGenealogy(id_type const &stem_id) : stem_id(stem_id) {
-    node_ptr root = std::make_shared<VirusNode>(stem_id); // TODO rzuca bad_alloc - jeżeli rzuci, to nic się nie stworzyło
+    node_ptr root = std::make_shared<VirusNode>(stem_id);
     viruses.insert(pair_id_ptr(stem_id, root));
   }
 
@@ -104,23 +112,13 @@ public:
   std::vector<id_type> get_children(id_type const &id) const {
     if (!exists(id))
       throw VirusNotFound();
-
-    try {
-      return viruses.at(id)->get_children();
-    } catch (...) {
-      return std::vector<id_type>();
-    }
+    return viruses.at(id)->get_children();
   }
 
   std::vector<id_type> get_parents(id_type const &id) const {
     if (!exists(id))
       throw VirusNotFound();
-
-    try {
-      return viruses.at(id)->get_parents();
-    } catch (...) {
-      return std::vector<id_type>();
-    }
+    return viruses.at(id)->get_parents();
   }
 
   bool exists(id_type const &id) const {
@@ -139,7 +137,6 @@ public:
     if (!exists(parent_id))
       throw VirusNotFound();
 
-    // TODO połapać wyjątki
     node_ptr new_virus = std::make_shared<VirusNode>(id);
     node_ptr parent    = viruses.at(parent_id);
 
@@ -158,10 +155,10 @@ public:
         throw VirusNotFound();
     }
 
-    // TODO wyjatki
     node_ptr new_virus = std::make_shared<VirusNode>(id);
     node_ptr parent;
     viruses.insert(pair_id_ptr(id, new_virus));
+
     for (id_type parent_id : parent_ids) {
       parent = viruses.at(parent_id);
       new_virus->add_parent(parent);
@@ -173,7 +170,6 @@ public:
     if (!exists(parent_id) || !exists(child_id))
       throw VirusNotFound();
 
-    // TODO wyjatki
     node_ptr child  = viruses.at(child_id);
     node_ptr parent = viruses.at(parent_id);
     child->add_parent(parent);
@@ -186,12 +182,12 @@ public:
     if (id == stem_id)
       throw TriedToRemoveStemVirus();
 
-    // TODO wyjatki
     node_ptr virus = viruses.at(id);
     node_ptr parent;
     node_ptr child;
-    std::vector<id_type> parents  = (*virus).get_parents();
-    std::vector<id_type> children = (*virus).get_children();
+
+    std::vector<id_type> parents  = virus->get_parents();
+    std::vector<id_type> children = virus->get_children();
 
     for (id_type parent_id : parents) {
       parent = viruses.at(parent_id);
