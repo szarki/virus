@@ -74,7 +74,7 @@ private:
     void remove_child(node_ptr child) {
       children.erase(child);
     }
-
+    // TODO jezeli nie ma parentow to czy nie usunac?
     void remove_parent(node_ptr parent) {
       parents.erase(parent);
     }
@@ -207,6 +207,10 @@ public:
     if (!exists(parent_id) || !exists(child_id))
       throw VirusNotFound();
 
+    node_ptr child = viruses.at(child_id);
+    node_ptr parent = viruses.at(parent_id);
+    child.add_parent(parent);
+    parent.add_child(child);
   }
 
   // Usuwa wirus o podanym identyfikatorze.
@@ -218,14 +222,22 @@ public:
       throw VirusNotFound();
     if (id == stemID)
       throw TriedToRemoveStemVirus();
-    // for (id_type it : parents.at(id))
-    //   children.at(it).erase(id);
-    // for (id_type it : children.at(id)) {
-    //   parents.at(it).erase(id);
-    //   if (parents[it].empty())
-    //     remove(it);
-    // }
-    // viruses.erase(id);
+
+    node_ptr virus = viruses.at(id);
+    node_ptr parent;
+    node_ptr child;
+    std::vector<int> parents = virus.get_parents();
+    std::vector<int> children = virus.get_children();
+
+    for (int parent_id : parents) {
+      parent = viruses.at(parent_id);
+      parent.remove_child(virus);
+    }
+
+    for (int child_id : children) {
+      child = viruses.at(child_id);
+      child.remove_parent(virus);
+    }
   }
 };
 
