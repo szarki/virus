@@ -62,7 +62,7 @@ private:
     Virus get_virus() {
       return virus;
     }
-
+    // TODO mozliwe ze bedzie trzeba wszystkie add_* i remove_* zmienic w kodzie na bezposrednia implementacje
     void add_child(node_ptr child) {
       children.insert(child);
     }
@@ -80,17 +80,17 @@ private:
     }
 
     std::vector<id_type> get_parents() {
-      std::vector<id_type> parentsVec;
+      std::vector<id_type> parents_vec;
       for (auto parent : parents)
-        parentsVec.push_back(parent);
-      return parentsVec;
+        parents_vec.push_back((*parent).get_virus().get_id());
+      return parents_vec;
     }
 
     std::vector<id_type> get_children() {
-      std::vector<id_type> childrenVec;
+      std::vector<id_type> children_vec;
       for (auto child : children)
-        childrenVec.push_back(child);
-      return childrenVec;
+        children_vec.push_back((*child).get_virus().get_id());
+      return children_vec;
     }
   };
 
@@ -117,7 +117,7 @@ public:
       throw VirusNotFound();
 
     try {
-      return viruses.at(id).get_children();
+      return (*viruses.at(id)).get_children();
     } catch (...) {
       return std::vector<id_type>();
     }
@@ -131,7 +131,7 @@ public:
       throw VirusNotFound();
 
     try {
-      return viruses.at(id).get_parents();
+      return (*viruses.at(id)).get_parents();
     } catch (...) {
       return std::vector<id_type>();
     }
@@ -142,6 +142,7 @@ public:
     return viruses.find(id) != viruses.end();
   }
 
+  // TODO problem z lvalue
   // Zwraca referencję do obiektu reprezentującego wirus o podanym
   // identyfikatorze.
   // Zgłasza wyjątek VirusNotFound, jeśli żądany wirus nie istnieje.
@@ -149,7 +150,7 @@ public:
     if (!exists(id))
       throw VirusNotFound();
 
-    return *(viruses.at(id).get_virus());
+    return (*viruses.at(id)).get_virus();
   }
 
   // Tworzy węzeł reprezentujący nowy wirus o identyfikatorze id
@@ -173,8 +174,8 @@ public:
     node_ptr new_virus = std::make_shared<VirusNode>(id);
     node_ptr parent    = viruses.at(parent_id);
 
-    new_virus.add_parent(parent);
-    parent.add_child(new_virus);
+    (*new_virus).add_parent(parent);
+    (*parent).add_child(new_virus);
     viruses.insert(pair_id_ptr(id, new_virus));
   }
 
@@ -184,7 +185,7 @@ public:
       throw VirusAlreadyCreated();
     if (parent_ids.empty())
       throw VirusNotFound();
-    for (int parent : parent_ids) {
+    for (id_type parent : parent_ids) {
       if (!exists(parent))
         throw VirusNotFound();
     }
@@ -193,10 +194,10 @@ public:
     node_ptr new_virus = std::make_shared<VirusNode>(id);
     node_ptr parent;
     viruses.insert(pair_id_ptr(id, new_virus));
-    for (int parent_id : parent_ids) {
+    for (id_type parent_id : parent_ids) {
       parent = viruses.at(parent_id);
-      new_virus.add_parent(parent);
-      parent.add_child(new_virus);
+      (*new_virus).add_parent(parent);
+      (*parent).add_child(new_virus);
     }
   }
 
@@ -209,8 +210,8 @@ public:
 
     node_ptr child = viruses.at(child_id);
     node_ptr parent = viruses.at(parent_id);
-    child.add_parent(parent);
-    parent.add_child(child);
+    (*child).add_parent(parent);
+    (*parent).add_child(child);
   }
 
   // Usuwa wirus o podanym identyfikatorze.
@@ -226,17 +227,17 @@ public:
     node_ptr virus = viruses.at(id);
     node_ptr parent;
     node_ptr child;
-    std::vector<int> parents = virus.get_parents();
-    std::vector<int> children = virus.get_children();
+    std::vector<id_type> parents  = (*virus).get_parents();
+    std::vector<id_type> children = (*virus).get_children();
 
-    for (int parent_id : parents) {
+    for (id_type parent_id : parents) {
       parent = viruses.at(parent_id);
-      parent.remove_child(virus);
+      (*parent).remove_child(virus);
     }
 
-    for (int child_id : children) {
+    for (id_type child_id : children) {
       child = viruses.at(child_id);
-      child.remove_parent(virus);
+      (*child).remove_parent(virus);
       // TODO albo tu albo w remove_parent trzeba chyba usuwac jak nie ma parentow
     }
 
