@@ -99,7 +99,7 @@ public:
 
   // Tworzy nową genealogię.
   // Tworzy także węzeł wirusa macierzystego o identyfikatorze stem_id.
-  VirusGenealogy(id_type const &stem_id) : stemID(stem_id) {
+  VirusGenealogy(id_type const &stem_id) : stem_id(stem_id) {
     node_ptr root = std::make_shared<VirusNode>(stem_id); // TODO rzuca bad_alloc - jeżeli rzuci, to nic się nie stworzyło
     viruses.insert(pair_id_ptr(stem_id, root));
   };
@@ -170,7 +170,7 @@ public:
     viruses.insert(pair_id_ptr(id, new_virus));
     */
     // TODO połapać wyjątki
-    node_ptr new_virus = std::make_shared<Node>(id);
+    node_ptr new_virus = std::make_shared<VirusNode>(id);
     node_ptr parent    = viruses.at(parent_id);
 
     new_virus.add_parent(parent);
@@ -184,16 +184,16 @@ public:
       throw VirusAlreadyCreated();
     if (parent_ids.empty())
       throw VirusNotFound();
-    for (int parent : parents_id) {
+    for (int parent : parent_ids) {
       if (!exists(parent))
         throw VirusNotFound();
     }
 
     // TODO wyjatki
-    node_ptr new_virus = std::make_shared<Node>(id);
+    node_ptr new_virus = std::make_shared<VirusNode>(id);
     node_ptr parent;
     viruses.insert(pair_id_ptr(id, new_virus));
-    for (int parent_id : parents_id) {
+    for (int parent_id : parent_ids) {
       parent = viruses.at(parent_id);
       new_virus.add_parent(parent);
       parent.add_child(new_virus);
@@ -216,7 +216,7 @@ public:
   void remove(id_type const &id) {
     if (!exists(id))
       throw VirusNotFound();
-    if (id == stemID)
+    if (id == stem_id)
       throw TriedToRemoveStemVirus();
     // for (id_type it : parents.at(id))
     //   children.at(it).erase(id);
