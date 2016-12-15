@@ -37,7 +37,7 @@ private:
   typedef typename std::map<id_type, node_ptr> node_map;
   typedef typename std::pair<id_type, node_ptr> pair_id_ptr;
 
-  id_type stemID;
+  id_type stem_id;
   node_map viruses;
 
   class VirusNode {
@@ -47,7 +47,7 @@ private:
     node_set parents;
 
   public:
-    VirusNode(id_type const &virusId) : virus(Virus(virusId)) {};
+    VirusNode(id_type const &virus_id) : virus(Virus(virus_id)) {};
 
     VirusNode(id_type const &id, id_type const &parent_id) : virus(Virus(id)) {
       parents.insert(viruses.at(parent_id));
@@ -83,13 +83,13 @@ public:
   // Tworzy nową genealogię.
   // Tworzy także węzeł wirusa macierzystego o identyfikatorze stem_id.
   VirusGenealogy(id_type const &stem_id) : stemID(stem_id) {
-    node_ptr stem = node_ptr(VirusNode(stem_id));
-    viruses.insert(pair_id_ptr(stem_id, stem));
+    node_ptr root = std::make_shared<VirusNode>(stem_id); // TODO rzuca bad_alloc - jeżeli rzuci, to nic się nie stworzyło
+    viruses.insert(pair_id_ptr(stem_id, root));
   };
 
   // Zwraca identyfikator wirusa macierzystego.
   id_type get_stem_id() const {
-    return stemID;
+    return stem_id;
   }
 
   // Zwraca listę identyfikatorów bezpośrednich następników wirusa
@@ -98,6 +98,7 @@ public:
   std::vector<id_type> get_children(id_type const &id) const {
     if (!exists(id))
       throw VirusNotFound();
+
     try {
       return viruses.at(id).get_children();
     } catch (...) {
@@ -111,6 +112,7 @@ public:
   std::vector<id_type> get_parents(id_type const &id) const {
     if (!exists(id))
       throw VirusNotFound();
+
     try {
       return viruses.at(id).get_parents();
     } catch (...) {
@@ -129,6 +131,7 @@ public:
   Virus& operator[](id_type const &id) const {
     if (!exists(id))
       throw VirusNotFound();
+
     return *(viruses.at(id).get_virus());
   }
 
@@ -144,8 +147,18 @@ public:
       throw VirusAlreadyCreated();
     if (!exists(parent_id))
       throw VirusNotFound();
-    node_ptr addedVirusPtr = node_ptr(VirusNode(id, parent_id));
-    viruses.insert(pair_id_ptr(id, addedVirusPtr));
+
+    /* nie wiem czy nie lepiej jak na dole - i tak dla parent trzeba dodać child
+    node_ptr new_virus = node_ptr(VirusNode(id, parent_id));
+    viruses.insert(pair_id_ptr(id, new_virus));
+    */
+    // TODO połapać wyjątki
+    node_ptr new_virus = std::make_shared<Node>(id);
+    node_ptr parent    = viruses.at(parent_id);
+
+    new_virus.add_parent(parent);
+    parent.add_child(new_virus);
+    viruses.insert(std::pair<id_type, node_ptr>(id, new_virus));
   }
 
 
