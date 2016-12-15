@@ -243,12 +243,15 @@ public:
     for (id_type child_id : children) {
       child = viruses.at(child_id);
       child->remove_parent(virus);
-
-      if (!child->has_parent() && child_id != stem_id)
-        remove(child_id);
     }
 
     viruses.erase(id);
+
+    for (id_type child_id : children) {
+      child = viruses.at(child_id);
+      if (!child->has_parent() && child_id != stem_id)
+        remove(child_id);
+    }
   }
 };
 
