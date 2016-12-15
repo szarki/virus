@@ -74,7 +74,7 @@ private:
     void remove_child(node_ptr child) {
       children.erase(child);
     }
-    // TODO jezeli nie ma parentow to czy nie usunac?
+
     void remove_parent(node_ptr parent) {
       parents.erase(parent);
     }
@@ -237,7 +237,10 @@ public:
     for (int child_id : children) {
       child = viruses.at(child_id);
       child.remove_parent(virus);
+      // TODO albo tu albo w remove_parent trzeba chyba usuwac jak nie ma parentow
     }
+
+    viruses.erase(id);
   }
 };
 
