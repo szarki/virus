@@ -1,7 +1,9 @@
 #ifndef VIRUS_GENEALOGY_H
 #define VIRUS_GENEALOGY_H
 
+#include <memory>
 #include <vector>
+#include <set>
 #include <map>
 
 class VirusAlreadyCreated : public std::exception {
@@ -27,13 +29,53 @@ class VirusGenealogy {
 private:
   //Klasa Virus reprezentuje informacje o wirusie. Jej implementacja
   //zostanie dostarczona w stosownym czasie.
+  class VirusNode;
 
   typedef typename Virus::id_type id_type;
+  typedef typename std::shared_ptr<VirusNode> node_ptr;
+  typedef typename std::set<node_ptr> node_set;
+  typedef typename std::map<id_type, node_ptr> node_map;
+  typedef typename std::pair<id_type, node_ptr> pair_id_ptr;
 
   id_type stemID;
-  std::map<id_type, std::vector<id_type>> children;
-  std::map<id_type, std::vector<id_type>> parents;
-  std::map<id_type, Virus*> viruses;
+  node_map viruses;
+
+  class VirusNode {
+  private:
+    Virus virus;
+    node_set children;
+    node_set parents;
+
+  public:
+    VirusNode(id_type const &virusId) : virus(Virus(virusId)) {};
+
+    VirusNode(id_type const &id, id_type const &parent_id) : virus(Virus(id)) {
+      parents.insert(viruses.at(parent_id));
+    }
+
+    VirusNode(id_type const &id, std::vector<id_type> const &parent_ids) : virus(Virus(id)) {
+      for (id_type parent_id : parent_ids)
+        parents.insert(viruses.at(parent_id));
+    }
+
+    Virus get_virus() {
+      return virus;
+    }
+
+    std::vector<id_type> get_parents() {
+      std::vector<id_type> parentsVec;
+      for (auto parent : parents)
+        parentsVec.push_back(parent);
+      return parentsVec;
+    }
+
+    std::vector<id_type> get_children() {
+      std::vector<id_type> childrenVec;
+      for (auto child : children)
+        childrenVec.push_back(child);
+      return childrenVec;
+    }
+  };
 
 public:
   //Klasa VirusGenealogy powinna udostępniać następujący interfejs.
@@ -41,9 +83,8 @@ public:
   // Tworzy nową genealogię.
   // Tworzy także węzeł wirusa macierzystego o identyfikatorze stem_id.
   VirusGenealogy(id_type const &stem_id) : stemID(stem_id) {
-    Virus* stem = new Virus(stem_id);
-    viruses.insert(std::pair<id_type, Virus*>(stem_id, stem));
-    children.insert(std::pair<id_type, std::vector<id_type>>(stem_id, std::vector<id_type>()));
+    node_ptr stem = node_ptr(VirusNode(stem_id));
+    viruses.insert(pair_id_ptr(stem_id, stem));
   };
 
   // Zwraca identyfikator wirusa macierzystego.
@@ -58,7 +99,7 @@ public:
     if (!exists(id))
       throw VirusNotFound();
     try {
-      return children.at(id);
+      return viruses.at(id).get_children();
     } catch (...) {
       return std::vector<id_type>();
     }
@@ -71,7 +112,7 @@ public:
     if (!exists(id))
       throw VirusNotFound();
     try {
-      return parents.at(id);
+      return viruses.at(id).get_parents();
     } catch (...) {
       return std::vector<id_type>();
     }
@@ -88,7 +129,7 @@ public:
   Virus& operator[](id_type const &id) const {
     if (!exists(id))
       throw VirusNotFound();
-    return *(viruses.at(id));
+    return *(viruses.at(id).get_virus());
   }
 
   // Tworzy węzeł reprezentujący nowy wirus o identyfikatorze id
@@ -103,14 +144,18 @@ public:
       throw VirusAlreadyCreated();
     if (!exists(parent_id))
       throw VirusNotFound();
-    Virus* toAdd = new Virus(id);
-    viruses.insert(std::pair<id_type, Virus*>(id, toAdd));
-    std::vector<id_type> vec;
-    vec.push_back(id);
-    parents.insert(std::pair<id_type, std::vector<id_type>>(id, vec));
-    children.at(parent_id).push_back(id);
-
+    node_ptr addedVirusPtr = node_ptr(VirusNode(id, parent_id));
+    viruses.insert(pair_id_ptr(id, addedVirusPtr));
   }
+
+
+
+
+// <--- |||||||||||||||||| ---->
+
+
+
+
 
   void create(id_type const &id, std::vector<id_type> const &parent_ids) {
     if (exists(id))
@@ -121,16 +166,22 @@ public:
       if (!exists(parent_ids[i]))
         throw VirusNotFound();
     }
-    Virus* toAdd = new Virus(id);
-    viruses.insert(std::pair<id_type, Virus*>(id, toAdd));
-    parents.insert(std::pair<id_type, std::vector<id_type>>(id, parent_ids));
-    for (int i=0; i<parent_ids.size(); ++i)
-      children.at(parent_ids[i]).push_back(id);
+    // virus_ptr toAdd = virus_ptr(Virus(id));
+    // viruses.insert(pair_id_ptr(id, toAdd));
+    //
+    // std::set<virus_ptr> parentsSet;
+    // for (int i=0; i<parent_ids.size(); ++i)
+    //   parentsSet.insert(viruses.at(parent_ids[i]));
+    // parents.insert(pair_id_set(id, parentsSet));
+    // for (int i=0; i<parent_ids.size(); ++i)
+    //   children.at(parent_ids[i]).insert(viruses.at(id));
   }
 
   // Dodaje nową krawędź w grafie genealogii.
   // Zgłasza wyjątek VirusNotFound, jeśli któryś z podanych wirusów nie istnieje.
   void connect(id_type const &child_id, id_type const &parent_id) {
+    if (!exists(parent_id) || !exists(child_id))
+      throw VirusNotFound();
 
   }
 
@@ -143,7 +194,6 @@ public:
       throw VirusNotFound();
     if (id == stemID)
       throw TriedToRemoveStemVirus();
-    viruses.erase(id);
     // for (id_type it : parents.at(id))
     //   children.at(it).erase(id);
     // for (id_type it : children.at(id)) {
@@ -151,6 +201,7 @@ public:
     //   if (parents[it].empty())
     //     remove(it);
     // }
+    // viruses.erase(id);
   }
 };
 
