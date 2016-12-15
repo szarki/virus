@@ -45,7 +45,7 @@ private:
     node_set parents;
 
   public:
-    VirusNode(id_type const &virus_id) : virus(Virus(virus_id)) {};
+    VirusNode(id_type const &virus_id) : virus(Virus(virus_id)) {}
 
     Virus& get_virus() {
       return virus;
@@ -85,8 +85,8 @@ private:
     }
   };
 
-  VirusGenealogy& operator=(const VirusGenealogy& that) {};
-  VirusGenealogy& operator=(const VirusGenealogy&& that) {};
+  VirusGenealogy& operator=(const VirusGenealogy& that) {}
+  VirusGenealogy& operator=(const VirusGenealogy&& that) {}
   VirusGenealogy(const VirusGenealogy& that) {}
   VirusGenealogy(const VirusGenealogy&& that) {}
 
@@ -95,7 +95,7 @@ public:
   VirusGenealogy(id_type const &stem_id) : stem_id(stem_id) {
     node_ptr root = std::make_shared<VirusNode>(stem_id); // TODO rzuca bad_alloc - jeżeli rzuci, to nic się nie stworzyło
     viruses.insert(pair_id_ptr(stem_id, root));
-  };
+  }
 
   id_type get_stem_id() const {
     return stem_id;
