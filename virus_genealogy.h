@@ -81,6 +81,8 @@ private:
 
     std::vector<id_type> get_parents() {
       std::vector<id_type> parents_vec;
+      //TODO a może?
+      // std::vector<id_type> parenst_vec(parents.begin(), parents.end());
       for (auto parent : parents)
         parents_vec.push_back((*parent).get_virus().get_id());
       return parents_vec;
