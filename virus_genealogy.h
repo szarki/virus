@@ -48,7 +48,7 @@ private:
 
   public:
     VirusNode(id_type const &virus_id) : virus(Virus(virus_id)) {};
-
+    /*
     VirusNode(id_type const &id, id_type const &parent_id) : virus(Virus(id)) {
       parents.insert(viruses.at(parent_id));
     }
@@ -57,12 +57,12 @@ private:
     VirusNode(id_type const &id, std::vector<id_type> const &parent_ids) : virus(Virus(id)) {
       for (id_type parent_id : parent_ids)
         parents.insert(viruses.at(parent_id));
-    }
+    }*/
 
     Virus get_virus() {
       return virus;
     }
-    // TODO mozliwe ze bedzie trzeba wszystkie add_* i remove_* zmienic w kodzie na bezposrednia implementacje
+
     void add_child(node_ptr child) {
       children.insert(child);
     }
@@ -84,14 +84,14 @@ private:
       //TODO a może?
       // std::vector<id_type> parenst_vec(parents.begin(), parents.end());
       for (auto parent : parents)
-        parents_vec.push_back((*parent).get_virus().get_id());
+        parents_vec.push_back(parent->get_virus().get_id());
       return parents_vec;
     }
 
     std::vector<id_type> get_children() {
       std::vector<id_type> children_vec;
       for (auto child : children)
-        children_vec.push_back((*child).get_virus().get_id());
+        children_vec.push_back(child->get_virus().get_id());
       return children_vec;
     }
   };
@@ -119,7 +119,7 @@ public:
       throw VirusNotFound();
 
     try {
-      return (*viruses.at(id)).get_children();
+      return viruses.at(id)->get_children();
     } catch (...) {
       return std::vector<id_type>();
     }
@@ -133,7 +133,7 @@ public:
       throw VirusNotFound();
 
     try {
-      return (*viruses.at(id)).get_parents();
+      return viruses.at(id)->get_parents();
     } catch (...) {
       return std::vector<id_type>();
     }
@@ -152,7 +152,7 @@ public:
     if (!exists(id))
       throw VirusNotFound();
 
-    return (*viruses.at(id)).get_virus();
+    return viruses.at(id)->get_virus();
   }
 
   // Tworzy węzeł reprezentujący nowy wirus o identyfikatorze id
@@ -176,8 +176,8 @@ public:
     node_ptr new_virus = std::make_shared<VirusNode>(id);
     node_ptr parent    = viruses.at(parent_id);
 
-    (*new_virus).add_parent(parent);
-    (*parent).add_child(new_virus);
+    new_virus->add_parent(parent);
+    parent->add_child(new_virus);
     viruses.insert(pair_id_ptr(id, new_virus));
   }
 
@@ -198,8 +198,8 @@ public:
     viruses.insert(pair_id_ptr(id, new_virus));
     for (id_type parent_id : parent_ids) {
       parent = viruses.at(parent_id);
-      (*new_virus).add_parent(parent);
-      (*parent).add_child(new_virus);
+      new_virus->add_parent(parent);
+      parent->add_child(new_virus);
     }
   }
 
@@ -212,8 +212,8 @@ public:
 
     node_ptr child = viruses.at(child_id);
     node_ptr parent = viruses.at(parent_id);
-    (*child).add_parent(parent);
-    (*parent).add_child(child);
+    child->add_parent(parent);
+    parent->add_child(child);
   }
 
   // Usuwa wirus o podanym identyfikatorze.
@@ -234,12 +234,12 @@ public:
 
     for (id_type parent_id : parents) {
       parent = viruses.at(parent_id);
-      (*parent).remove_child(virus);
+      parent->remove_child(virus);
     }
 
     for (id_type child_id : children) {
       child = viruses.at(child_id);
-      (*child).remove_parent(virus);
+      child->remove_parent(virus);
       // TODO albo tu albo w remove_parent trzeba chyba usuwac jak nie ma parentow
     }
 
