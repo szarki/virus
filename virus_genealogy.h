@@ -59,7 +59,7 @@ private:
         parents.insert(viruses.at(parent_id));
     }*/
 
-    Virus get_virus() {
+    Virus& get_virus() {
       return virus;
     }
 
