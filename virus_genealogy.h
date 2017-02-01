@@ -29,11 +29,11 @@ class VirusGenealogy {
 private:
   class VirusNode;
 
-  typedef typename Virus::id_type id_type;
-  typedef typename std::shared_ptr<VirusNode> node_ptr;
-  typedef typename std::set<node_ptr> node_set;
-  typedef typename std::map<id_type, node_ptr> node_map;
-  typedef typename std::pair<id_type, node_ptr> pair_id_ptr;
+  using id_type  = typename Virus::id_type;
+  using node_ptr = std::shared_ptr<VirusNode>;
+  using node_set = std::set<node_ptr>;
+  using node_map = std::map<id_type, node_ptr>;
+  using pair_id_ptr = std::pair<id_type, node_ptr>;
 
   id_type stem_id;
   node_map viruses;
@@ -45,7 +45,7 @@ private:
     node_set parents;
 
   public:
-    VirusNode(id_type const &virus_id) : virus(Virus(virus_id)) {}
+    VirusNode(id_type const &virus_id) : virus(virus_id) {}
 
     Virus& get_virus() {
       return virus;
